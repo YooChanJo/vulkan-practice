@@ -1,0 +1,6 @@
+.vscode
+*.bat
+*.ps1
+
+build
+build-release
