@@ -1,0 +1,1 @@
+call ..\..\build\Debug\VulkanPractice.exe

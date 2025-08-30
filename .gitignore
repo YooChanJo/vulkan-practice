@@ -1,6 +1,6 @@
+# custom settings
 .vscode
-*.bat
-*.ps1
 
+# builds
 build
 build-release

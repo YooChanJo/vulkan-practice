@@ -2,12 +2,22 @@ cmake_minimum_required(VERSION 3.22.1)
 set(CMAKE_CXX_STANDARD 17)
 project(VulkanPractice)
 
+# Force MSVC runtime consistency
+if (MSVC)
+    # Use Debug DLL for Debug, Release DLL for Release
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "" FORCE)
+endif()
+
 # Add sub directory build
 add_subdirectory(vendor/GLFW)
 add_subdirectory(vendor/GLM)
-set(UPDATE_DEPS ON CACHE BOOL "Automatically update Vulkan dependencies")
-add_subdirectory(vendor/Vulkan-ValidationLayers)
-unset(UPDATE_DEPS CACHE)
+if(ENABLE_UPDATE_DEPS)
+    set(UPDATE_DEPS ON CACHE BOOL "Automatically update Vulkan dependencies")
+    add_subdirectory(vendor/Vulkan-ValidationLayers)
+    unset(UPDATE_DEPS CACHE)
+else()
+    add_subdirectory(vendor/Vulkan-ValidationLayers)
+endif()
 
 # Add files
 file(GLOB_RECURSE SOURCES "src/*.cpp")
@@ -49,7 +59,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         # Debug
         $<$<CONFIG:Debug>:/Zi /Od /W4 /DDEBUG /MDd /EHsc /permissive->
         # Release
-        $<$<CONFIG:Release>:/O2 /Ob2 /GL /DNDEBUG /MD /EHsc /fp:fast /favor:FASTEST>
+        $<$<CONFIG:Release>:/O2 /Ob2 /GL /DNDEBUG /MD /EHsc /fp:fast>
     )
     target_link_options(${PROJECT_NAME} PRIVATE
         $<$<CONFIG:Release>:/LTCG>
