@@ -8,32 +8,35 @@ namespace VulkanPractice {
             throw std::runtime_error("An Application already exists");
         }
         m_Window = std::make_unique<Window>(config.WindowWidth, config.WindowHeight, config.WindowTitle);
+        Log::Init();
         InitVulkan();
         /* Print Extensions Info */
-        {
-            uint32_t extensionCount = 0;
-            vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-            std::vector<VkExtensionProperties> extensions(extensionCount);
-            vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
-            std::cout << "\033[93m[INFO] Available Vulkan Instance Extensions\033[0m\n";
-            for (const auto& ext : extensions) {
-                std::cout << "Name: \033[32m" << ext.extensionName 
-                << "\033[0m, Spec version: \033[32m" << ext.specVersion << "\n\033[0m";
+        DEBUG_ONLY(
+            {
+                uint32_t extensionCount = 0;
+                vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+                std::vector<VkExtensionProperties> extensions(extensionCount);
+                vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
+                LOG_INFO("Available Vulkan Instance Extensions");
+                for (const auto& ext : extensions) {
+                    std::cout << "Name: \033[32m" << ext.extensionName 
+                    << "\033[0m, Spec version: \033[32m" << ext.specVersion << "\n\033[0m";
+                }
+                std::cout << std::endl;
             }
-            std::cout << std::endl;
-        }
-        {
-            uint32_t extensionCount;
-            vkEnumerateDeviceExtensionProperties(m_VkPhysicalDevice, nullptr, &extensionCount, nullptr);
-            std::vector<VkExtensionProperties> extensions(extensionCount);
-            vkEnumerateDeviceExtensionProperties(m_VkPhysicalDevice, nullptr, &extensionCount, extensions.data());
-            std::cout << "\033[93m[INFO] Available Physical Device Extensions\033[0m\n";
-            for (const auto& ext : extensions) {
-                std::cout << "Name: \033[32m" << ext.extensionName 
-                << "\033[0m, Spec version: \033[32m" << ext.specVersion << "\n\033[0m";
+            {
+                uint32_t extensionCount;
+                vkEnumerateDeviceExtensionProperties(m_VkPhysicalDevice, nullptr, &extensionCount, nullptr);
+                std::vector<VkExtensionProperties> extensions(extensionCount);
+                vkEnumerateDeviceExtensionProperties(m_VkPhysicalDevice, nullptr, &extensionCount, extensions.data());
+                LOG_INFO("Available Physical Device Extensions");
+                for (const auto& ext : extensions) {
+                    std::cout << "Name: \033[32m" << ext.extensionName 
+                    << "\033[0m, Spec version: \033[32m" << ext.specVersion << "\n\033[0m";
+                }
+                std::cout << std::endl;
             }
-            std::cout << std::endl;
-        }
+        )
         s_Instance = this;
     }
     Application::~Application() {

@@ -1,6 +1,8 @@
 #pragma once
 #include "pch.h"
 #include "Window.h"
+#include "Core.h"
+#include "Log.h"
 
 namespace VulkanPractice {
     struct ApplicationConfig {

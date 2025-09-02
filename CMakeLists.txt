@@ -18,14 +18,16 @@ if(ENABLE_UPDATE_DEPS)
 else()
     add_subdirectory(vendor/Vulkan-ValidationLayers)
 endif()
+add_subdirectory(vendor/spdlog)
 
 # Add files
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 file(GLOB_RECURSE HEADERS "src/*.h")
 
 # Config
-set(my_includes vendor/GLFW/include vendor/GLM)
-set(my_libs glfw glm VkLayer_utils)
+set(my_includes vendor/GLFW/include vendor/GLM vendor/spdlog/include)
+set(my_libs glfw glm VkLayer_utils spdlog::spdlog $<$<BOOL:${MINGW}>:ws2_32>)
+# $<$<BOOL:${MINGW}>:ws2_32> is for spdlog
 
 # Added Vulkan
 find_package(Vulkan REQUIRED)
@@ -38,6 +40,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${my_libs} ${Vulkan_LIBRARIES})
 
 # Set Include directories
 target_include_directories(${PROJECT_NAME} PRIVATE ${my_includes} ${Vulkan_INCLUDE_DIRS})
+
+# Defines
+# Forces lib compilation
+target_compile_definitions(spdlog PRIVATE SPDLOG_COMPILED_LIB)
 
 # Set Precompiled Headers
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.h)
