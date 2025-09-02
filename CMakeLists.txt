@@ -74,3 +74,5 @@ endif()
 
 # Enable LTO for Release
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+
+# TODO: remove vk validation layer for release build --> redundant

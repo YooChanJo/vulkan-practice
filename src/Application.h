@@ -12,6 +12,9 @@ namespace VulkanPractice {
         uint32_t WindowWidth = 1280;
         uint32_t WindowHeight = 720;
         std::string WindowTitle = "Vulkan";
+
+
+
     };
 
     struct QueueFamilyIndices {
@@ -28,7 +31,6 @@ namespace VulkanPractice {
         inline bool IsAdequate() const { return !Formats.empty() && !PresentModes.empty(); }
     };
 
-
     class Application {
     private:
         inline static Application* s_Instance = nullptr;
@@ -38,14 +40,21 @@ namespace VulkanPractice {
 
         VkInstance m_VkInstance;
         VkSurfaceKHR m_VkSurfaceKHR;
+        DEBUG_ONLY(VkDebugUtilsMessengerEXT m_VkDebugUtilsMessengerEXT;)
         VkPhysicalDevice m_VkPhysicalDevice;
         VkDevice m_VkDevice;
         VkSwapchainKHR m_VkSwapchainKHR;
         VkQueue m_GraphicsQueue, m_PresentQueue;
 
-        std::vector<const char*> m_DeviceExtensions = { // possible add this to app config
+        // possible add this to app config
+        std::vector<const char*> m_InstanceExtensions;
+        std::vector<const char*> m_DeviceExtensions = {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME, // currently default
         };
+        std::vector<const char*> m_InstanceLayers = {
+            DEBUG_ONLY("VK_LAYER_KHRONOS_validation",)
+        };
+        // std::vector<const char*> m_DeviceLayers;
     public:
         Application(const ApplicationConfig& config = ApplicationConfig());
         ~Application();
@@ -59,13 +68,36 @@ namespace VulkanPractice {
         void CleanupVulkan();
 
         /* Util functions */
-        static bool IsPhysicalDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface, const std::vector<const char*>& deviceExtensions);
+        static bool CheckInstanceExtensionSupport(const std::vector<const char*>& instanceExtensions);
         static bool CheckDeviceExtensionSupport(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions);
+        static bool CheckInstanceLayerSupport(const std::vector<const char*>& instanceLayers);
+
+        static bool IsPhysicalDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface, const std::vector<const char*>& deviceExtensions);
         static QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface);
         static SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
 
         static VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
         static VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
         static VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, const std::unique_ptr<Window>& window);
+
+        DEBUG_ONLY(
+            static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
+                VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                VkDebugUtilsMessageTypeFlagsEXT messageType,
+                const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+                void* pUserData
+            );
+            static VkResult CreateDebugUtilsMessengerEXT(
+                VkInstance instance,
+                const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+                const VkAllocationCallbacks* pAllocator,
+                VkDebugUtilsMessengerEXT* pDebugMessenger
+            );
+            static void DestroyDebugUtilsMessengerEXT(
+                VkInstance instance,
+                VkDebugUtilsMessengerEXT debugMessenger,
+                const VkAllocationCallbacks* pAllocator
+            );
+        )
     };
 }

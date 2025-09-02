@@ -20,9 +20,9 @@ namespace VulkanPractice {
                 LOG_INFO("Available Vulkan Instance Extensions");
                 for (const auto& ext : extensions) {
                     std::cout << "Name: \033[32m" << ext.extensionName 
-                    << "\033[0m, Spec version: \033[32m" << ext.specVersion << "\n\033[0m";
+                    << "\033[0m, Spec version: \033[32m" << ext.specVersion
+                    << "\n\033[0m";
                 }
-                std::cout << std::endl;
             }
             {
                 uint32_t extensionCount;
@@ -32,9 +32,24 @@ namespace VulkanPractice {
                 LOG_INFO("Available Physical Device Extensions");
                 for (const auto& ext : extensions) {
                     std::cout << "Name: \033[32m" << ext.extensionName 
-                    << "\033[0m, Spec version: \033[32m" << ext.specVersion << "\n\033[0m";
+                    << "\033[0m, Spec version: \033[32m" << ext.specVersion
+                    << "\n\033[0m";
                 }
-                std::cout << std::endl;
+            }
+            {
+                uint32_t layerCount;
+                vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+                std::vector<VkLayerProperties> availableLayers(layerCount);
+                vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+                LOG_INFO("Available Vulkan Instance Layers");
+                for (const auto& layer : availableLayers) {
+                    std::cout << "Name: \033[32m" << layer.layerName 
+                    << "\033[0m, Spec version: \033[32m" << layer.specVersion
+                    << "\033[0m, Implementation version: \033[32m" << layer.implementationVersion
+                    << "\n\033[0m"
+                    << "\033[0mDescription: \033[32m" << layer.description
+                    << "\n\033[0m";
+                }
             }
         )
         s_Instance = this;
@@ -58,19 +73,56 @@ namespace VulkanPractice {
             VkInstanceCreateInfo createInfo{};
             createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
             createInfo.pApplicationInfo = &appInfo;
-    
-            uint32_t glfwExtensionCount = 0;
-            const char** glfwExtensions;
-            glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-            createInfo.enabledExtensionCount = glfwExtensionCount;
-            createInfo.ppEnabledExtensionNames = glfwExtensions;
-            createInfo.enabledLayerCount = 0;
-    
+
+            {
+                uint32_t glfwExtensionCount = 0;
+                const char** glfwExtensions;
+                glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+                m_InstanceExtensions = std::vector<const char*>(glfwExtensions, glfwExtensions + glfwExtensionCount);
+                DEBUG_ONLY(m_InstanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME));
+                // If we add app config need to check uniqueness
+            }
+            if(!CheckInstanceExtensionSupport(m_InstanceExtensions)) {
+                throw std::runtime_error("Instance extensions requested, yet not available!");
+            }
+            createInfo.enabledExtensionCount = static_cast<uint32_t>(m_InstanceExtensions.size());
+            createInfo.ppEnabledExtensionNames = m_InstanceExtensions.data();
+
+            if(!CheckInstanceLayerSupport(m_InstanceLayers)) {
+                throw std::runtime_error("Instance layers requested, yet not available!");
+            }
+            createInfo.enabledLayerCount = static_cast<uint32_t>(m_InstanceLayers.size());
+            createInfo.ppEnabledLayerNames = m_InstanceLayers.data();
+
+            /* Validation Layers for Debug Messenger and Instance */
+            DEBUG_ONLY(
+                VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+                debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+                debugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+                debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+                debugCreateInfo.pfnUserCallback = DebugCallback;
+                debugCreateInfo.pUserData = nullptr; // Optional
+                debugCreateInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
+            )
+
             if (vkCreateInstance(&createInfo, nullptr, &m_VkInstance) != VK_SUCCESS) {
                 throw std::runtime_error("Failed to create Vkinstance!");
             }
         }
-        /* Todo: Set up debug messager of validation layers */
+        /* Setup Debug Messenger only for Debug */
+        DEBUG_ONLY(
+            {
+                VkDebugUtilsMessengerCreateInfoEXT createInfo{};
+                createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+                createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+                createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+                createInfo.pfnUserCallback = DebugCallback;
+                createInfo.pUserData = nullptr; // Optional
+                if (CreateDebugUtilsMessengerEXT(m_VkInstance, &createInfo, nullptr, &m_VkDebugUtilsMessengerEXT) != VK_SUCCESS) {
+                    throw std::runtime_error("Failed to set up debug messenger!");
+                }
+            }
+        )
         /* Adding Surface KHR */
         {
             if (glfwCreateWindowSurface(m_VkInstance, m_Window->GetNativeWindow(), nullptr, &m_VkSurfaceKHR) != VK_SUCCESS) {
@@ -179,9 +231,36 @@ namespace VulkanPractice {
         vkDestroySwapchainKHR(m_VkDevice, m_VkSwapchainKHR, nullptr);
         vkDestroyDevice(m_VkDevice, nullptr);
         vkDestroySurfaceKHR(m_VkInstance, m_VkSurfaceKHR, nullptr);
+        DEBUG_ONLY(DestroyDebugUtilsMessengerEXT(m_VkInstance, m_VkDebugUtilsMessengerEXT, nullptr);)
         vkDestroyInstance(m_VkInstance, nullptr);
     }
-
+    bool Application::CheckInstanceExtensionSupport(const std::vector<const char*>& instanceExtensions) {
+        uint32_t extensionCount = 0;
+        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+        std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, availableExtensions.data());
+        std::set<std::string> requiredExtensions(instanceExtensions.begin(), instanceExtensions.end());
+        for (const auto& extension : availableExtensions) requiredExtensions.erase(extension.extensionName);
+        return requiredExtensions.empty();
+    }
+    bool Application::CheckDeviceExtensionSupport(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions) {
+        uint32_t extensionCount;
+        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+        std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+        std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+        for (const auto& extension : availableExtensions) requiredExtensions.erase(extension.extensionName);
+        return requiredExtensions.empty();
+    }
+    bool Application::CheckInstanceLayerSupport(const std::vector<const char*>& instanceLayers) {
+        uint32_t layerCount;
+        vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+        std::vector<VkLayerProperties> availableLayers(layerCount);
+        vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+        std::set<std::string> requiredLayers(instanceLayers.begin(), instanceLayers.end());
+        for (const auto& layer : availableLayers) requiredLayers.erase(layer.layerName);
+        return requiredLayers.empty();
+    }
     bool Application::IsPhysicalDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface, const std::vector<const char*>& deviceExtensions) {
         VkPhysicalDeviceProperties deviceProperties;
         VkPhysicalDeviceFeatures deviceFeatures;
@@ -194,15 +273,6 @@ namespace VulkanPractice {
             CheckDeviceExtensionSupport(device, deviceExtensions) &&
             QuerySwapChainSupport(device, surface).IsAdequate()
         );
-    }
-    bool Application::CheckDeviceExtensionSupport(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions) {
-        uint32_t extensionCount;
-        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
-        std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
-        std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
-        for (const auto& extension : availableExtensions) requiredExtensions.erase(extension.extensionName);
-        return requiredExtensions.empty();
     }
     QueueFamilyIndices Application::FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface) {
         QueueFamilyIndices indices;
@@ -276,4 +346,40 @@ namespace VulkanPractice {
             return actualExtent;
         }
     }
+    DEBUG_ONLY(
+        VKAPI_ATTR VkBool32 VKAPI_CALL Application::DebugCallback(
+            VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+            VkDebugUtilsMessageTypeFlagsEXT messageType,
+            const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+            void* pUserData
+        ) {
+
+            LOG_ERROR("Validation layer: {}", pCallbackData->pMessage);
+
+            return VK_FALSE;
+        }
+        VkResult Application::CreateDebugUtilsMessengerEXT(
+            VkInstance instance,
+            const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+            const VkAllocationCallbacks* pAllocator,
+            VkDebugUtilsMessengerEXT* pDebugMessenger
+        ) {
+            auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+            if (func != nullptr) {
+                return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+            } else {
+                return VK_ERROR_EXTENSION_NOT_PRESENT;
+            }
+        }
+        void Application::DestroyDebugUtilsMessengerEXT(
+            VkInstance instance,
+            VkDebugUtilsMessengerEXT debugMessenger,
+            const VkAllocationCallbacks* pAllocator
+        ) {
+            auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+            if (func != nullptr) {
+                func(instance, debugMessenger, pAllocator);
+            }
+        }
+    )
 }
