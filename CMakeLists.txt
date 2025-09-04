@@ -102,35 +102,13 @@ message("COMMON_CMAKE_COMMAND_ARGS set to ${COMMON_CMAKE_COMMAND_ARGS}")
 # -------------------------------------------------------------
 # Build External Dependencies as Stand Alone
 # -------------------------------------------------------------
-function(run_and_log)
-    execute_process(
-        ${ARGV}
-        RESULT_VARIABLE result
-        OUTPUT_VARIABLE output
-        ERROR_VARIABLE error
-    )
-
-    if(NOT result EQUAL 0)
-        message(SEND_ERROR "Command failed with exit code ${result}")
-    endif()
-
-    if(output)
-        message(STATUS "Output:\n${output}")
-    endif()
-
-    if(error)
-        message(WARNING "Error:\n${error}")
-    endif()
-endfunction()
-
-
 if(IS_INITIAL_SETUP)
     if(IS_MULTI_CONFIG)
         message(WARNING "Warning: Every possible configuration is built (Debug, Release, RelWithDebInfo, MinSizeRel). This may take some time.")
         # Vulkan Validation Layers
         message(WARNING "Wifi is required for this process, please keep device online.")
         message(STATUS "Configuring Vulkan Validation Layers Debug Build")
-        run_and_log(
+        execute_process(
             COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers"
                                     -B "${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers/build/Debug"
                                     ${COMMON_CMAKE_COMMAND_ARGS}
@@ -141,7 +119,7 @@ if(IS_INITIAL_SETUP)
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers"
         )
         message(STATUS "Configuring Vulkan Validation Layers RelWithDebInfo Build")
-        run_and_log(
+        execute_process(
             COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers"
                                     -B "${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers/build/RelWithDebInfo"
                                     ${COMMON_CMAKE_COMMAND_ARGS}
@@ -154,14 +132,14 @@ if(IS_INITIAL_SETUP)
         message(WARNING "Wifi no longer required.")
         # Vulkan Validation Layers
         message(STATUS "Building Vulkan Validation Layers")
-        run_and_log(
+        execute_process(
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers/build/Debug" --parallel --config Debug
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers/build/RelWithDebInfo" --parallel --config RelWithDebInfo
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers"
         )
         # GLFW
         message(STATUS "Building Vulkan GLFW")
-        run_and_log(
+        execute_process(
             COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/vendor/GLFW"
                                     -B "${CMAKE_SOURCE_DIR}/vendor/GLFW/build"
                                     -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG=${CMAKE_SOURCE_DIR}/vendor/builds/lib/Debug
@@ -177,7 +155,7 @@ if(IS_INITIAL_SETUP)
         )
         # GLM
         message(STATUS "Building Vulkan GLM")
-        run_and_log(
+        execute_process(
             COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/vendor/GLM"
                                     -B "${CMAKE_SOURCE_DIR}/vendor/GLM/build"
                                     ${COMMON_CMAKE_COMMAND_ARGS}
@@ -193,7 +171,7 @@ if(IS_INITIAL_SETUP)
         )
         # spdlog
         message(STATUS "Building Vulkan spdlog")
-        run_and_log(
+        execute_process(
             COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/vendor/spdlog"
                                     -B "${CMAKE_SOURCE_DIR}/vendor/spdlog/build"
                                     ${COMMON_CMAKE_COMMAND_ARGS}
