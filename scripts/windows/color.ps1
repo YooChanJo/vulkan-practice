@@ -1,1 +1,0 @@
-$Host.UI.RawUI.ForegroundColor = "White"

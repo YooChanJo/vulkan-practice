@@ -12,9 +12,6 @@ namespace VulkanPractice {
         uint32_t WindowWidth = 1280;
         uint32_t WindowHeight = 720;
         std::string WindowTitle = "Vulkan";
-
-
-
     };
 
     struct QueueFamilyIndices {
@@ -41,15 +38,22 @@ namespace VulkanPractice {
         VkInstance m_VkInstance;
         VkSurfaceKHR m_VkSurfaceKHR;
         DEBUG_ONLY(VkDebugUtilsMessengerEXT m_VkDebugUtilsMessengerEXT;)
+
         VkPhysicalDevice m_VkPhysicalDevice;
+
         VkDevice m_VkDevice;
-        VkSwapchainKHR m_VkSwapchainKHR;
         VkQueue m_GraphicsQueue, m_PresentQueue;
+
+        VkSwapchainKHR m_VkSwapchainKHR;
+        std::vector<VkImage> m_SwapChainImages;
+        VkFormat m_SwapChainImageFormat;
+        VkExtent2D m_SwapChainExtent;
+        std::vector<VkImageView> m_SwapChainImageViews;
 
         // possible add this to app config
         std::vector<const char*> m_InstanceExtensions;
         std::vector<const char*> m_DeviceExtensions = {
-            VK_KHR_SWAPCHAIN_EXTENSION_NAME, // currently default
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME, // required
         };
         std::vector<const char*> m_InstanceLayers = {
             DEBUG_ONLY("VK_LAYER_KHRONOS_validation",)
@@ -66,6 +70,15 @@ namespace VulkanPractice {
     private:
         void InitVulkan();
         void CleanupVulkan();
+
+        void CreateInstance();
+        DEBUG_ONLY(void SetupDebugMessenger();)
+        void CreateSurface();
+        void PickPhysicalDevice();
+        void CreateLogicalDevice();
+        void CreateSwapChain();
+        void CreateImageViews();
+        void CreateGraphicsPipeline();
 
         /* Util functions */
         static bool CheckInstanceExtensionSupport(const std::vector<const char*>& instanceExtensions);

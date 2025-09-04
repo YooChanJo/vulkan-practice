@@ -1,0 +1,168 @@
+cmake_minimum_required(VERSION 3.22.1)
+project(VulkanPractice)
+
+set(CMAKE_CXX_STANDARD 17)
+
+# -------------------------------------------------------------
+# Force MSVC runtime consistency
+# -------------------------------------------------------------
+# if(MSVC)
+#     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "" FORCE)
+# endif()
+# -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
+
+# -------------------------------------------------------------
+# Detect generator type
+# -------------------------------------------------------------
+get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+
+# -------------------------------------------------------------
+# Create Output Directory Prefix
+# -------------------------------------------------------------
+if(IS_MULTI_CONFIG)
+    if(DEFINED CMAKE_VS_PLATFORM_NAME)
+        set(PLATFORM_FOLDER ${CMAKE_VS_PLATFORM_NAME})
+    else()
+        set(PLATFORM_FOLDER ${CMAKE_SYSTEM_PROCESSOR})
+    endif()
+    set(BIN_OUTPUT_DIRECTORY_PREFIX ${CMAKE_BINARY_DIR}/bin/$<CONFIG>/${PLATFORM_FOLDER})
+    set(LIB_OUTPUT_DIRECTORY_PREFIX ${CMAKE_BINARY_DIR}/lib/$<CONFIG>/${PLATFORM_FOLDER})
+else()
+    if(DEFINED CMAKE_VS_PLATFORM_NAME)
+        set(PLATFORM_FOLDER ${CMAKE_VS_PLATFORM_NAME})
+    else()
+        set(PLATFORM_FOLDER ${CMAKE_SYSTEM_PROCESSOR})
+    endif()
+    set(BIN_OUTPUT_DIRECTORY_PREFIX ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}/${PLATFORM_FOLDER})
+    set(LIB_OUTPUT_DIRECTORY_PREFIX ${CMAKE_BINARY_DIR}/lib/${CMAKE_BUILD_TYPE}/${PLATFORM_FOLDER})
+endif()
+
+# -------------------------------------------------------------
+# Source files
+# -------------------------------------------------------------
+file(GLOB_RECURSE SOURCES "src/*.cpp")
+file(GLOB_RECURSE HEADERS "src/*.h")
+
+# -------------------------------------------------------------
+# Load Vulkan
+# -------------------------------------------------------------
+find_package(Vulkan REQUIRED)
+
+# -------------------------------------------------------------
+# Create main executable target
+# -------------------------------------------------------------
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+
+# -------------------------------------------------------------
+# Add external dependencies
+# -------------------------------------------------------------
+if(IS_MULTI_CONFIG)
+    if(ENABLE_UPDATE_DEPS)
+        message("Updating deps...")
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers"
+                                    -B "${CMAKE_BINARY_DIR}/vklayer_update_deps_tmp"
+                                    -DCMAKE_BUILD_TYPE=Debug
+                                    -DUPDATE_DEPS=ON
+                                    -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>DLL
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers"
+        )
+        file(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/vklayer_update_deps_tmp")
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers"
+                                    -B "${CMAKE_BINARY_DIR}/vklayer_update_deps_tmp"
+                                    -DCMAKE_BUILD_TYPE=RelWithDebInfo
+                                    -DUPDATE_DEPS=ON
+                                    -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>DLL
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers"
+        )
+        file(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/vklayer_update_deps_tmp")
+    endif()
+else()
+    if(ENABLE_UPDATE_DEPS AND CMAKE_BUILD_TYPE MATCHES "Debug|RelWithDebInfo")
+        message("Updating deps...")
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers"
+                                    -B "${CMAKE_BINARY_DIR}/vklayer_update_deps_tmp"
+                                    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+                                    -DUPDATE_DEPS=ON
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers"
+        )
+        file(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/vklayer_update_deps_tmp")
+    endif()
+endif()
+
+# Add definitions from cmake only --> Makes target names visible
+add_subdirectory(vendor/GLFW)
+add_subdirectory(vendor/GLM)
+add_subdirectory(vendor/spdlog)
+set(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/vendor/Vulkan-ValidationLayers/external" CACHE PATH "External path for find package")
+add_subdirectory(vendor/Vulkan-ValidationLayers)
+unset(CMAKE_PREFIX_PATH CACHE)
+
+set_target_properties(glfw PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${LIB_OUTPUT_DIRECTORY}/GLFW)
+set_target_properties(glm PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${LIB_OUTPUT_DIRECTORY}/GLM)
+set_target_properties(spdlog PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${LIB_OUTPUT_DIRECTORY}/spdlog)
+set_target_properties(VkLayer_utils PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${LIB_OUTPUT_DIRECTORY}/Vulkan-ValidationLayers)
+
+target_compile_definitions(spdlog PRIVATE SPDLOG_COMPILED_LIB)
+
+
+# -------------------------------------------------------------
+# Includes & Libraries
+# -------------------------------------------------------------
+set(my_includes vendor/GLFW/include vendor/GLM vendor/spdlog/include)
+set(my_libs glfw glm::glm $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:VkLayer_utils> spdlog::spdlog $<$<BOOL:${MINGW}>:ws2_32>)
+
+# -------------------------------------------------------------
+# Add Target Properties etc.
+# -------------------------------------------------------------
+target_include_directories(${PROJECT_NAME} PRIVATE ${my_includes} ${Vulkan_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${my_libs} ${Vulkan_LIBRARIES})
+target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:INCLUDE_DEBUG_INFO>)
+target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.h)
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIRECTORY_PREFIX}/${PROJECT_NAME}
+    # LIBRARY_OUTPUT_DIRECTORY ${LIB_OUTPUT_DIRECTORY_PREFIX}/${PROJECT_NAME}
+    # ARCHIVE_OUTPUT_DIRECTORY ${LIB_OUTPUT_DIRECTORY_PREFIX}/${PROJECT_NAME}
+)
+
+# -------------------------------------------------------------
+# Visual Studio startup project
+# -------------------------------------------------------------
+if(MSVC)
+    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
+endif()
+
+# -------------------------------------------------------------
+# Compiler options
+# -------------------------------------------------------------
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        $<$<CONFIG:Debug>:-g -O0 -Wall -Wextra -Wshadow -Wformat=2 -Wpedantic -DDEBUG>
+        $<$<CONFIG:Release>:-O3 -march=native -flto -funroll-loops -DNDEBUG -fstrict-aliasing -ffast-math>
+        $<$<CONFIG:RelWithDebInfo>:-O2 -g -DNDEBUG>
+        $<$<CONFIG:MinSizeRel>:-Os -DNDEBUG>
+    )
+    target_link_options(${PROJECT_NAME} PRIVATE
+        $<$<CONFIG:Release>:-flto>
+        $<$<CONFIG:RelWithDebInfo>:-flto>
+    )
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        $<$<CONFIG:Debug>:/Zi /Od /W4 /DDEBUG /MDd /EHsc /permissive->
+        $<$<CONFIG:Release>:/O2 /Ob2 /GL /DNDEBUG /MD /EHsc /fp:fast>
+        $<$<CONFIG:RelWithDebInfo>:/O2 /Zi /DNDEBUG /MD /EHsc>
+        $<$<CONFIG:MinSizeRel>:/O1 /Os /DNDEBUG /MD /EHsc>
+    )
+    target_link_options(${PROJECT_NAME} PRIVATE
+        $<$<CONFIG:Release>:/LTCG>
+        $<$<CONFIG:RelWithDebInfo>:/LTCG>
+    )
+endif()
+
+# -------------------------------------------------------------
+# Enable LTO for release-like builds
+# -------------------------------------------------------------
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+# set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO TRUE)
