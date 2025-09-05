@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef NDEBUG
+#ifdef INCLUDE_DEBUG_INFO
     #define DEBUG_ONLY(X) X
     #define RELEASE_ONLY(X)
 #else

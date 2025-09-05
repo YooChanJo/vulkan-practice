@@ -1,12 +1,43 @@
 @echo off
 REM ==============================================================
-REM Remove existing build directory
+REM Determine build configuration
 REM ==============================================================
-IF EXIST ..\..\build (
-    rmdir /s /q ..\..\build
-    echo Build directory removed.
-) ELSE (
-    echo Build directory does not exist.
+set BUILD_TYPE=Debug
+if /I "%1"=="--Debug" (
+    set BUILD_TYPE=Debug
+) else (
+    if /I "%1"=="" (
+        set BUILD_TYPE=Debug
+    ) else (
+        if /I "%1"=="--Release" (
+            set BUILD_TYPE=Release
+        ) else (
+            if /I "%1"=="--RelWithDebInfo" (
+                set BUILD_TYPE=RelWithDebInfo
+            ) else (
+                if /I "%1"=="--MinSizeRel" (
+                    set BUILD_TYPE=MinSizeRel
+                ) else (
+                    if /I "%1"=="--help" (
+                        echo ^<Available Commands^>
+                        echo Debug: ./build or ./build --Debug
+                        echo Release: ./build --Release
+                        echo RelWithDebuInfo: ./build --RelWithDebInfo
+                        echo MinSizeRel: ./build --MinSizeRel
+                        exit /b 0
+                    ) else (
+                        echo Invalid flag
+                        echo ^<Available Commands^>
+                        echo Debug: ./build or ./build --Debug
+                        echo Release: ./build --Release
+                        echo RelWithDebuInfo: ./build --RelWithDebInfo
+                        echo MinSizeRel: ./build --MinSizeRel
+                        exit /b 1
+                    )
+                )
+            )
+        )
+    )
 )
 
 REM ==============================================================
@@ -31,37 +62,6 @@ call cmake -S ..\.. -B ..\..\build -DIS_INITIAL_SETUP=OFF -G "Visual Studio 17 2
 if errorlevel 1 (
     echo CMake configuration failed!
     exit /b 1
-)
-
-REM ==============================================================
-REM Determine build configuration
-REM ==============================================================
-set BUILD_TYPE=Debug
-if /I "%1"=="--Debug" (
-    set BUILD_TYPE=Debug
-) else (
-    if /I "%1"=="--Release" (
-        set BUILD_TYPE=Release
-    ) else (
-        if /I "%1"=="--RelWithDebInfo" (
-            set BUILD_TYPE=RelWithDebInfo
-        ) else (
-            if /I "%1"=="--MinSizeRel" (
-                set BUILD_TYPE=MinSizeRel
-            ) else (
-                if /I "%1"=="--help" (
-                    echo ^<Available Commands^>
-                    echo Debug: ./build or ./build --Debug
-                    echo Release: ./build --Release
-                    echo RelWithDebuInfo: ./build --RelWithDebInfo
-                    echo MinSizeRel: ./build --MinSizeRel
-                ) else (
-                    echo Invalid flag
-                    exit /b 1
-                )
-            )
-        )
-    )
 )
 
 echo Building %BUILD_TYPE%

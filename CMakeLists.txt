@@ -19,7 +19,6 @@ if(IS_MULTI_CONFIG)
     endif()
     set(BIN_OUTPUT_DIRECTORY_PREFIX ${CMAKE_BINARY_DIR}/bin/$<CONFIG>/${PLATFORM_FOLDER})
     set(LIB_OUTPUT_DIRECTORY_PREFIX ${CMAKE_BINARY_DIR}/lib/$<CONFIG>/${PLATFORM_FOLDER})
-    set(COPY_FROM_LIB_DIRECTORY ${CMAKE_SOURCE_DIR}/vendor/builds/lib/$<CONFIG>)
 else()
     if(DEFINED CMAKE_VS_PLATFORM_NAME)
         set(PLATFORM_FOLDER ${CMAKE_VS_PLATFORM_NAME})
@@ -28,8 +27,10 @@ else()
     endif()
     set(BIN_OUTPUT_DIRECTORY_PREFIX ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}/${PLATFORM_FOLDER})
     set(LIB_OUTPUT_DIRECTORY_PREFIX ${CMAKE_BINARY_DIR}/lib/${CMAKE_BUILD_TYPE}/${PLATFORM_FOLDER})
-    set(COPY_FROM_LIB_DIRECTORY ${CMAKE_SOURCE_DIR}/vendor/builds/lib/${CMAKE_BUILD_TYPE})
 endif()
+set(COPY_FROM_LIB_DIRECTORY ${CMAKE_SOURCE_DIR}/vendor/builds/lib)
+set(COPY_FROM_BIN_DIRECTORY ${CMAKE_SOURCE_DIR}/vendor/builds/bin) # Currently not copying from
+set(COPY_TO_LIB_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 # -------------------------------------------------------------
 # Source files
@@ -103,6 +104,10 @@ message("COMMON_CMAKE_COMMAND_ARGS set to ${COMMON_CMAKE_COMMAND_ARGS}")
 # Build External Dependencies as Stand Alone
 # -------------------------------------------------------------
 if(IS_INITIAL_SETUP)
+    # Remove previous build
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_SOURCE_DIR}/vendor/builds"
+    )
     if(IS_MULTI_CONFIG)
         message(WARNING "Warning: Every possible configuration is built (Debug, Release, RelWithDebInfo, MinSizeRel). This may take some time.")
         # Vulkan Validation Layers
@@ -113,7 +118,9 @@ if(IS_INITIAL_SETUP)
                                     -B "${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers/build/Debug"
                                     ${COMMON_CMAKE_COMMAND_ARGS}
                                     -DCMAKE_BUILD_TYPE=Debug
-                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG=${CMAKE_SOURCE_DIR}/vendor/builds/lib/Debug
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG=${COPY_FROM_LIB_DIRECTORY}/Debug/${PLATFORM_FOLDER}
+                                    -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG=${COPY_FROM_LIB_DIRECTORY}/Debug/${PLATFORM_FOLDER}
+                                    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG=${COPY_FROM_BIN_DIRECTORY}/Debug/${PLATFORM_FOLDER}
                                     -DUPDATE_DEPS=ON
                                     "-DCMAKE_PREFIX_PATH=${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers/external/Debug"  
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers"
@@ -124,7 +131,9 @@ if(IS_INITIAL_SETUP)
                                     -B "${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers/build/RelWithDebInfo"
                                     ${COMMON_CMAKE_COMMAND_ARGS}
                                     -DCMAKE_BUILD_TYPE=RelWithDebInfo
-                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO=${CMAKE_SOURCE_DIR}/vendor/builds/lib/RelWithDebInfo
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO=${COPY_FROM_LIB_DIRECTORY}/RelWithDebInfo/${PLATFORM_FOLDER}
+                                    -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO=${COPY_FROM_LIB_DIRECTORY}/RelWithDebInfo/${PLATFORM_FOLDER}
+                                    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO=${COPY_FROM_BIN_DIRECTORY}/RelWithDebInfo/${PLATFORM_FOLDER}
                                     -DUPDATE_DEPS=ON
                                     "-DCMAKE_PREFIX_PATH=${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers/external/RelWithDebInfo"  
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers"
@@ -142,10 +151,22 @@ if(IS_INITIAL_SETUP)
         execute_process(
             COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/vendor/GLFW"
                                     -B "${CMAKE_SOURCE_DIR}/vendor/GLFW/build"
-                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG=${CMAKE_SOURCE_DIR}/vendor/builds/lib/Debug
-                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE=${CMAKE_SOURCE_DIR}/vendor/builds/lib/Release
-                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO=${CMAKE_SOURCE_DIR}/vendor/builds/lib/RelWithDebInfo
-                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL=${CMAKE_SOURCE_DIR}/vendor/builds/lib/MinSizeRel
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG=${COPY_FROM_LIB_DIRECTORY}/Debug/${PLATFORM_FOLDER}
+                                    -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG=${COPY_FROM_LIB_DIRECTORY}/Debug/${PLATFORM_FOLDER}
+                                    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG=${COPY_FROM_BIN_DIRECTORY}/Debug/${PLATFORM_FOLDER}
+
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE=${COPY_FROM_LIB_DIRECTORY}/Release/${PLATFORM_FOLDER}
+                                    -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE=${COPY_FROM_LIB_DIRECTORY}/Release/${PLATFORM_FOLDER}
+                                    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE=${COPY_FROM_BIN_DIRECTORY}/Release/${PLATFORM_FOLDER}
+
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO=${COPY_FROM_LIB_DIRECTORY}/RelWithDebInfo/${PLATFORM_FOLDER}
+                                    -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO=${COPY_FROM_LIB_DIRECTORY}/RelWithDebInfo/${PLATFORM_FOLDER}
+                                    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO=${COPY_FROM_BIN_DIRECTORY}/RelWithDebInfo/${PLATFORM_FOLDER}
+
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL=${COPY_FROM_LIB_DIRECTORY}/MinSizeRel/${PLATFORM_FOLDER}
+                                    -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL=${COPY_FROM_LIB_DIRECTORY}/MinSizeRel/${PLATFORM_FOLDER}
+                                    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL=${COPY_FROM_BIN_DIRECTORY}/MinSizeRel/${PLATFORM_FOLDER}
+
                                     ${COMMON_CMAKE_COMMAND_ARGS}
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/vendor/GLFW/build" --parallel --config Debug
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/vendor/GLFW/build" --parallel --config Release
@@ -159,10 +180,22 @@ if(IS_INITIAL_SETUP)
             COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/vendor/GLM"
                                     -B "${CMAKE_SOURCE_DIR}/vendor/GLM/build"
                                     ${COMMON_CMAKE_COMMAND_ARGS}
-                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG=${CMAKE_SOURCE_DIR}/vendor/builds/lib/Debug
-                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE=${CMAKE_SOURCE_DIR}/vendor/builds/lib/Release
-                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO=${CMAKE_SOURCE_DIR}/vendor/builds/lib/RelWithDebInfo
-                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL=${CMAKE_SOURCE_DIR}/vendor/builds/lib/MinSizeRel
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG=${COPY_FROM_LIB_DIRECTORY}/Debug/${PLATFORM_FOLDER}
+                                    -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG=${COPY_FROM_LIB_DIRECTORY}/Debug/${PLATFORM_FOLDER}
+                                    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG=${COPY_FROM_BIN_DIRECTORY}/Debug/${PLATFORM_FOLDER}
+
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE=${COPY_FROM_LIB_DIRECTORY}/Release/${PLATFORM_FOLDER}
+                                    -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE=${COPY_FROM_LIB_DIRECTORY}/Release/${PLATFORM_FOLDER}
+                                    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE=${COPY_FROM_BIN_DIRECTORY}/Release/${PLATFORM_FOLDER}
+
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO=${COPY_FROM_LIB_DIRECTORY}/RelWithDebInfo/${PLATFORM_FOLDER}
+                                    -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO=${COPY_FROM_LIB_DIRECTORY}/RelWithDebInfo/${PLATFORM_FOLDER}
+                                    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO=${COPY_FROM_BIN_DIRECTORY}/RelWithDebInfo/${PLATFORM_FOLDER}
+
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL=${COPY_FROM_LIB_DIRECTORY}/MinSizeRel/${PLATFORM_FOLDER}
+                                    -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL=${COPY_FROM_LIB_DIRECTORY}/MinSizeRel/${PLATFORM_FOLDER}
+                                    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL=${COPY_FROM_BIN_DIRECTORY}/MinSizeRel/${PLATFORM_FOLDER}
+
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/vendor/GLM/build" --parallel --config Debug
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/vendor/GLM/build" --parallel --config Release
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/vendor/GLM/build" --parallel --config RelWithDebInfo
@@ -175,10 +208,22 @@ if(IS_INITIAL_SETUP)
             COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/vendor/spdlog"
                                     -B "${CMAKE_SOURCE_DIR}/vendor/spdlog/build"
                                     ${COMMON_CMAKE_COMMAND_ARGS}
-                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG=${CMAKE_SOURCE_DIR}/vendor/builds/lib/Debug
-                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE=${CMAKE_SOURCE_DIR}/vendor/builds/lib/Release
-                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO=${CMAKE_SOURCE_DIR}/vendor/builds/lib/RelWithDebInfo
-                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL=${CMAKE_SOURCE_DIR}/vendor/builds/lib/MinSizeRel
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG=${COPY_FROM_LIB_DIRECTORY}/Debug/${PLATFORM_FOLDER}
+                                    -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG=${COPY_FROM_LIB_DIRECTORY}/Debug/${PLATFORM_FOLDER}
+                                    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG=${COPY_FROM_BIN_DIRECTORY}/Debug/${PLATFORM_FOLDER}
+
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE=${COPY_FROM_LIB_DIRECTORY}/Release/${PLATFORM_FOLDER}
+                                    -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE=${COPY_FROM_LIB_DIRECTORY}/Release/${PLATFORM_FOLDER}
+                                    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE=${COPY_FROM_BIN_DIRECTORY}/Release/${PLATFORM_FOLDER}
+
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO=${COPY_FROM_LIB_DIRECTORY}/RelWithDebInfo/${PLATFORM_FOLDER}
+                                    -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO=${COPY_FROM_LIB_DIRECTORY}/RelWithDebInfo/${PLATFORM_FOLDER}
+                                    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO=${COPY_FROM_BIN_DIRECTORY}/RelWithDebInfo/${PLATFORM_FOLDER}
+
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL=${COPY_FROM_LIB_DIRECTORY}/MinSizeRel/${PLATFORM_FOLDER}
+                                    -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL=${COPY_FROM_LIB_DIRECTORY}/MinSizeRel/${PLATFORM_FOLDER}
+                                    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL=${COPY_FROM_BIN_DIRECTORY}/MinSizeRel/${PLATFORM_FOLDER}
+
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/vendor/spdlog/build" --parallel --config Debug
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/vendor/spdlog/build" --parallel --config Release
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/vendor/spdlog/build" --parallel --config RelWithDebInfo
@@ -192,23 +237,73 @@ if(IS_INITIAL_SETUP)
 endif()
 
 # Copy ${CMAKE_SOURCE_DIR}/vendor/builds/lib/<config> to ${LIB_OUTPUT_DIRECTORY_PREFIX}
-add_custom_target(copy_contents ALL
+execute_process( # doesnt know config copy all
     COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${COPY_FROM_LIB_DIRECTORY}
-            ${LIB_OUTPUT_DIRECTORY_PREFIX}
+            ${COPY_TO_LIB_DIRECTORY}
 )
-add_dependencies(${PROJECT_NAME} copy_contents)
 
 # -------------------------------------------------------------
 # Includes & Libraries
 # -------------------------------------------------------------
 set(my_includes vendor/GLFW/include vendor/GLM vendor/spdlog/include)
-file(GLOB_RECURSE LIB_FILES CONFIGURE_DEPENDS
-    "${LIB_OUTPUT_DIRECTORY_PREFIX}/*"
+find_library(GLFW_LIB_DEBUG NAMES glfw glfw3 PATHS ${COPY_TO_LIB_DIRECTORY}/Debug/${PLATFORM_FOLDER})
+find_library(SPDLOG_LIB_DEBUG NAMES spdlog spdlogd PATHS ${COPY_TO_LIB_DIRECTORY}/Debug/${PLATFORM_FOLDER})
+find_library(GLM_LIB_DEBUG NAMES glm PATHS ${COPY_TO_LIB_DIRECTORY}/Debug/${PLATFORM_FOLDER})
+find_library(VK_LAYER_LIB_DEBUG NAMES VkLayer_utils PATHS ${COPY_TO_LIB_DIRECTORY}/Debug/${PLATFORM_FOLDER})
+message(STATUS "Found ${GLFW_LIB_DEBUG};${SPDLOG_LIB_DEBUG};${GLM_LIB_DEBUG};${VK_LAYER_LIB_DEBUG}")
+
+find_library(GLFW_LIB_RELEASE NAMES glfw glfw3 PATHS ${COPY_TO_LIB_DIRECTORY}/Release/${PLATFORM_FOLDER})
+find_library(SPDLOG_LIB_RELEASE NAMES spdlog spdlogd PATHS ${COPY_TO_LIB_DIRECTORY}/Release/${PLATFORM_FOLDER})
+find_library(GLM_LIB_RELEASE NAMES glm PATHS ${COPY_TO_LIB_DIRECTORY}/Release/${PLATFORM_FOLDER})
+message(STATUS "Found ${GLFW_LIB_RELEASE};${SPDLOG_LIB_RELEASE};${GLM_LIB_RELEASE}")
+
+find_library(GLFW_LIB_RELWITHDEBINFO NAMES glfw glfw3 PATHS ${COPY_TO_LIB_DIRECTORY}/RelWithDebInfo/${PLATFORM_FOLDER})
+find_library(SPDLOG_LIB_RELWITHDEBINFO NAMES spdlog spdlogd PATHS ${COPY_TO_LIB_DIRECTORY}/RelWithDebInfo/${PLATFORM_FOLDER})
+find_library(GLM_LIB_RELWITHDEBINFO NAMES glm PATHS ${COPY_TO_LIB_DIRECTORY}/RelWithDebInfo/${PLATFORM_FOLDER})
+find_library(VK_LAYER_LIB_RELWITHDEBINFO NAMES VkLayer_utils PATHS ${COPY_TO_LIB_DIRECTORY}/RelWithDebInfo/${PLATFORM_FOLDER})
+message(STATUS "Found ${GLFW_LIB_RELWITHDEBINFO};${SPDLOG_LIB_RELWITHDEBINFO};${GLM_LIB_RELWITHDEBINFO};${VK_LAYER_LIB_RELWITHDEBINFO}")
+
+find_library(GLFW_LIB_MINSIZEREL NAMES glfw glfw3 PATHS ${COPY_TO_LIB_DIRECTORY}/MinSizeRel/${PLATFORM_FOLDER})
+find_library(SPDLOG_LIB_MINSIZEREL NAMES spdlog spdlogd PATHS ${COPY_TO_LIB_DIRECTORY}/MinSizeRel/${PLATFORM_FOLDER})
+find_library(GLM_LIB_MINSIZEREL NAMES glm PATHS ${COPY_TO_LIB_DIRECTORY}/MinSizeRel/${PLATFORM_FOLDER})
+message(STATUS "Found ${GLFW_LIB_MINSIZEREL};${SPDLOG_LIB_MINSIZEREL};${GLM_LIB_MINSIZEREL}")
+
+# Create an imported target for each dependency
+add_library(GLFW::GLFW UNKNOWN IMPORTED)
+add_library(SPDLOG::SPDLOG UNKNOWN IMPORTED)
+add_library(GLM::GLM UNKNOWN IMPORTED)
+add_library(VK_LAYER::UTILS UNKNOWN IMPORTED)
+
+# Assign config-specific locations
+set_target_properties(GLFW::GLFW PROPERTIES
+    IMPORTED_LOCATION_DEBUG        "${GLFW_LIB_DEBUG}"
+    IMPORTED_LOCATION_RELEASE      "${GLFW_LIB_RELEASE}"
+    IMPORTED_LOCATION_RELWITHDEBINFO "${GLFW_LIB_RELWITHDEBINFO}"
+    IMPORTED_LOCATION_MINSIZEREL   "${GLFW_LIB_MINSIZEREL}"
 )
-message(STATUS "My Libs being linked: ${LIB_FILES}")
+
+set_target_properties(SPDLOG::SPDLOG PROPERTIES
+    IMPORTED_LOCATION_DEBUG        "${SPDLOG_LIB_DEBUG}"
+    IMPORTED_LOCATION_RELEASE      "${SPDLOG_LIB_RELEASE}"
+    IMPORTED_LOCATION_RELWITHDEBINFO "${SPDLOG_LIB_RELWITHDEBINFO}"
+    IMPORTED_LOCATION_MINSIZEREL   "${SPDLOG_LIB_MINSIZEREL}"
+)
+
+set_target_properties(GLM::GLM PROPERTIES
+    IMPORTED_LOCATION_DEBUG        "${GLM_LIB_DEBUG}"
+    IMPORTED_LOCATION_RELEASE      "${GLM_LIB_RELEASE}"
+    IMPORTED_LOCATION_RELWITHDEBINFO "${GLM_LIB_RELWITHDEBINFO}"
+    IMPORTED_LOCATION_MINSIZEREL   "${GLM_LIB_MINSIZEREL}"
+)
+
+set_target_properties(VK_LAYER::UTILS PROPERTIES
+    IMPORTED_LOCATION_DEBUG        "${VK_LAYER_LIB_DEBUG}"
+    IMPORTED_LOCATION_RELWITHDEBINFO "${VK_LAYER_LIB_RELWITHDEBINFO}"
+)
+
 # set(my_libs glfw glm::glm $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:VkLayer_utils> spdlog::spdlog $<$<BOOL:${MINGW}>:ws2_32>)
-set(my_libs ${LIB_FILES} $<$<BOOL:${MINGW}>:ws2_32>)
+set(my_libs GLFW::GLFW SPDLOG::SPDLOG GLM::GLM $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:VK_LAYER::UTILS> $<$<BOOL:${MINGW}>:ws2_32>)
 
 # -------------------------------------------------------------
 # Add Target Properties etc.
@@ -254,29 +349,12 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         $<$<CONFIG:RelWithDebInfo>:/LTCG>
     )
 endif()
+if(MSVC)
+    target_compile_options(${PROJECT_NAME} PUBLIC /utf-8)
+endif()
 
 # -------------------------------------------------------------
 # Enable LTO for release-like builds
 # -------------------------------------------------------------
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
 # set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO TRUE)
-
-# # Suppose this is the full path from LOCATION
-# get_target_property(FULL_PATH VendorLib LOCATION)
-# message(STATUS "Full path: ${FULL_PATH}")
-
-# # Extract just the filename with extension
-# get_filename_component(FILE_NAME ${FULL_PATH} NAME)
-# message(STATUS "Filename with extension: ${FILE_NAME}")
-
-# # Optional: extract directory only
-# get_filename_component(DIR_NAME ${FULL_PATH} DIRECTORY)
-# message(STATUS "Directory: ${DIR_NAME}")
-
-# # Optional: extract filename without extension
-# get_filename_component(FILE_NO_EXT ${FULL_PATH} NAME_WE)
-# message(STATUS "Filename without extension: ${FILE_NO_EXT}")
-
-# # Optional: extract just the extension
-# get_filename_component(EXT ${FULL_PATH} EXT)
-# message(STATUS "Extension: ${EXT}")
