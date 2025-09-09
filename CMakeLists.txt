@@ -138,6 +138,20 @@ if(IS_INITIAL_SETUP)
                                     "-DCMAKE_PREFIX_PATH=${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers/external/RelWithDebInfo"  
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers"
         )
+        # message(STATUS "Updating third parties for shaderc")
+        # find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+        # execute_process(
+        #     COMMAND ${Python3_EXECUTABLE} "${CMAKE_SOURCE_DIR}/vendor/shaderc/utils/git-sync-deps"
+        #     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/vendor/shaderc"
+        #     RESULT_VARIABLE Pyresult
+        #     OUTPUT_VARIABLE Pyout
+        #     ERROR_VARIABLE Pyerr
+        # )
+        # message(STATUS "Exit code: ${Pyresult}")
+        # message(STATUS "Stdout:\n${Pyout}")
+        # if(NOT "${Pyerr}" STREQUAL "") # If Error exists
+        #     message(STATUS "Python stderr:\n${Pyerr}")
+        # endif()
         message(WARNING "Wifi no longer required.")
         # Vulkan Validation Layers
         message(STATUS "Building Vulkan Validation Layers")
@@ -146,8 +160,36 @@ if(IS_INITIAL_SETUP)
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers/build/RelWithDebInfo" --parallel --config RelWithDebInfo
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/vendor/Vulkan-Validationlayers"
         )
+        # shaderc
+        # message(STATUS "Building shaderc")
+        # execute_process(
+        #     COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/vendor/shaderc"
+        #                             -B "${CMAKE_SOURCE_DIR}/vendor/shaderc/build"
+        #                             ${COMMON_CMAKE_COMMAND_ARGS}
+        #                             -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG=${COPY_FROM_LIB_DIRECTORY}/Debug/${PLATFORM_FOLDER}
+        #                             -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG=${COPY_FROM_LIB_DIRECTORY}/Debug/${PLATFORM_FOLDER}
+        #                             -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG=${COPY_FROM_BIN_DIRECTORY}/Debug/${PLATFORM_FOLDER}
+
+        #                             -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE=${COPY_FROM_LIB_DIRECTORY}/Release/${PLATFORM_FOLDER}
+        #                             -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE=${COPY_FROM_LIB_DIRECTORY}/Release/${PLATFORM_FOLDER}
+        #                             -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE=${COPY_FROM_BIN_DIRECTORY}/Release/${PLATFORM_FOLDER}
+
+        #                             -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO=${COPY_FROM_LIB_DIRECTORY}/RelWithDebInfo/${PLATFORM_FOLDER}
+        #                             -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO=${COPY_FROM_LIB_DIRECTORY}/RelWithDebInfo/${PLATFORM_FOLDER}
+        #                             -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO=${COPY_FROM_BIN_DIRECTORY}/RelWithDebInfo/${PLATFORM_FOLDER}
+
+        #                             -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL=${COPY_FROM_LIB_DIRECTORY}/MinSizeRel/${PLATFORM_FOLDER}
+        #                             -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL=${COPY_FROM_LIB_DIRECTORY}/MinSizeRel/${PLATFORM_FOLDER}
+        #                             -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL=${COPY_FROM_BIN_DIRECTORY}/MinSizeRel/${PLATFORM_FOLDER}
+
+        #     COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/vendor/shaderc/build" --parallel --config Debug
+        #     COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/vendor/shaderc/build" --parallel --config Release
+        #     COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/vendor/shaderc/build" --parallel --config RelWithDebInfo
+        #     COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/vendor/shaderc/build" --parallel --config MinSizeRel
+        #     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/vendor/shaderc"
+        # )
         # GLFW
-        message(STATUS "Building Vulkan GLFW")
+        message(STATUS "Building GLFW")
         execute_process(
             COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/vendor/GLFW"
                                     -B "${CMAKE_SOURCE_DIR}/vendor/GLFW/build"
@@ -175,7 +217,7 @@ if(IS_INITIAL_SETUP)
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/vendor/GLFW"
         )
         # GLM
-        message(STATUS "Building Vulkan GLM")
+        message(STATUS "Building GLM")
         execute_process(
             COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/vendor/GLM"
                                     -B "${CMAKE_SOURCE_DIR}/vendor/GLM/build"
@@ -203,7 +245,7 @@ if(IS_INITIAL_SETUP)
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/vendor/GLM"
         )
         # spdlog
-        message(STATUS "Building Vulkan spdlog")
+        message(STATUS "Building spdlog")
         execute_process(
             COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/vendor/spdlog"
                                     -B "${CMAKE_SOURCE_DIR}/vendor/spdlog/build"
@@ -310,7 +352,8 @@ set(my_libs GLFW::GLFW SPDLOG::SPDLOG GLM::GLM $<$<OR:$<CONFIG:Debug>,$<CONFIG:R
 # -------------------------------------------------------------
 target_include_directories(${PROJECT_NAME} PRIVATE ${my_includes} ${Vulkan_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${my_libs} ${Vulkan_LIBRARIES})
-target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:INCLUDE_DEBUG_INFO>)
+target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:INCLUDE_DEBUG_INFO> SHADER_DIR="${CMAKE_SOURCE_DIR}/assets/shaders")
+
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.h)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIRECTORY_PREFIX}/${PROJECT_NAME}

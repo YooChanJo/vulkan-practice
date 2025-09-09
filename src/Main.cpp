@@ -10,9 +10,7 @@ using namespace VulkanPractice;
 int main() {
     Application MyApp;
     try {
-        while(!glfwWindowShouldClose(Application::GetInstance()->GetWindow()->GetNativeWindow())) {
-            glfwPollEvents();
-        }
+        MyApp.Run();
     } catch (const std::exception& e) {
         LOG_CRITICAL(e.what());
         return EXIT_FAILURE;

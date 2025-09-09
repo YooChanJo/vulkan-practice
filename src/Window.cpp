@@ -14,7 +14,7 @@ namespace VulkanPractice {
         }
         /* Hint that we are not using openGL */
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // window resize disabled for now
+        // glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // window resize disabled for now
 
         m_Window = glfwCreateWindow(m_Width, m_Height, m_Title.c_str(), nullptr, nullptr);
         if(!m_Window) {
