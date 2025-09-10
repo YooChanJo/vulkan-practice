@@ -1,6 +1,6 @@
 @echo off
 REM WARNING: Using Setup command includes process of dep update, which is unnecessary after initial setup
-REM If setup has already successfully been executed, use ./build instead.
+REM If setup has already successfully been executed, use ./reconfig instead.
 
 REM ==============================================================
 REM Remove existing build directory
@@ -10,6 +10,16 @@ IF EXIST ..\..\build (
     echo Build directory removed.
 ) ELSE (
     echo Build directory does not exist.
+)
+
+REM ==============================================================
+REM Remove existing build directory
+REM ==============================================================
+IF EXIST ..\..\external (
+    rmdir /s /q ..\..\external
+    echo External directory removed.
+) ELSE (
+    echo External directory does not exist.
 )
 
 REM ==============================================================
