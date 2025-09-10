@@ -1,5 +1,7 @@
 @echo off
 REM This script applies CMAKE list changes to /build
+REM cleaning former build
+call clean
 REM ==============================================================
 REM Detect system architecture
 REM ==============================================================

@@ -152,20 +152,6 @@ if(IS_INITIAL_SETUP)
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/glfw/build" --parallel --config Release
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glfw"
         )
-        if(MSVC)
-            execute_process(
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/glfw-extract/Debug/glfw3.lib" "${CMAKE_SOURCE_DIR}/external/builds/Debug/glfw3.lib"
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/glfw-extract/Debug/glfw3.pdb" "${CMAKE_SOURCE_DIR}/external/builds/Debug/glfw3.pdb"
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/glfw-extract/Release/glfw3.lib" "${CMAKE_SOURCE_DIR}/external/builds/Release/glfw3.lib"
-                WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glfw"
-            )
-        else()
-            execute_process(
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/glfw-extract/Debug/glfw3.lib" "${CMAKE_SOURCE_DIR}/external/builds/Debug/glfw3.lib"
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/glfw-extract/Release/glfw3.lib" "${CMAKE_SOURCE_DIR}/external/builds/Release/glfw3.lib"
-                WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glfw"
-            )
-        endif()
         # glm
         execute_process(
             COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/external/glm"
@@ -181,20 +167,6 @@ if(IS_INITIAL_SETUP)
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/glm/build" --parallel --config Release
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glm"
         )
-        if(MSVC)
-            execute_process(
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/glm-extract/Debug/glm.lib" "${CMAKE_SOURCE_DIR}/external/builds/Debug/glm.lib"
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/glm-extract/Debug/glm.pdb" "${CMAKE_SOURCE_DIR}/external/builds/Debug/glm.pdb"
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/glm-extract/Release/glm.lib" "${CMAKE_SOURCE_DIR}/external/builds/Release/glm.lib"
-                WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glm"
-            )
-        else()
-            execute_process(
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/glm-extract/Debug/glm.lib" "${CMAKE_SOURCE_DIR}/external/builds/Debug/glm.lib"
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/glm-extract/Release/glm.lib" "${CMAKE_SOURCE_DIR}/external/builds/Release/glm.lib"
-                WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glm"
-            )
-        endif()
         # spdlog
         execute_process(
             COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/external/spdlog"
@@ -211,20 +183,6 @@ if(IS_INITIAL_SETUP)
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/spdlog/build" --parallel --config Release
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/spdlog"
         )
-        if(MSVC)
-            execute_process(
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/spdlog-extract/Debug/spdlogd.lib" "${CMAKE_SOURCE_DIR}/external/builds/Debug/spdlogd.lib"
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/spdlog-extract/Debug/spdlogd.pdb" "${CMAKE_SOURCE_DIR}/external/builds/Debug/spdlogd.pdb"
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/spdlog-extract/Release/spdlog.lib" "${CMAKE_SOURCE_DIR}/external/builds/Release/spdlog.lib"
-                WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/spdlog"
-            )
-        else()
-            execute_process(
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/spdlog-extract/Debug/spdlogd.lib" "${CMAKE_SOURCE_DIR}/external/builds/Debug/spdlogd.lib"
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/spdlog-extract/Release/spdlog.lib" "${CMAKE_SOURCE_DIR}/external/builds/Release/spdlog.lib"
-                WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/spdlog"
-            )
-        endif()
         # shaderc
         execute_process(
             COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/external/shaderc"
@@ -246,22 +204,158 @@ if(IS_INITIAL_SETUP)
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/shaderc/build" --parallel --config Release
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/shaderc"
         )
-        if(MSVC)
-            execute_process(
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/shaderc-extract/Debug/shaderc_combined.lib" "${CMAKE_SOURCE_DIR}/external/builds/Debug/shaderc_combined.lib"
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/shaderc-extract/Debug/shaderc.pdb" "${CMAKE_SOURCE_DIR}/external/builds/Debug/shaderc.pdb"
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/shaderc-extract/Release/shaderc_combined.lib" "${CMAKE_SOURCE_DIR}/external/builds/Release/shaderc_combined.lib"
-                WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/shaderc"
-            )
-        else()
-            execute_process(
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/shaderc-extract/Debug/shaderc_combined.lib" "${CMAKE_SOURCE_DIR}/external/builds/Debug/shaderc_combined.lib"
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/shaderc-extract/Release/shaderc_combined.lib" "${CMAKE_SOURCE_DIR}/external/builds/Release/shaderc_combined.lib"
-                WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/shaderc"
-            )
-        endif()
     else()
-        message(WARNING "Not Supported yet: To be implemented.")
+        # glfw
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/external/glfw"
+                                    -B "${CMAKE_SOURCE_DIR}/external/glfw/build-debug"
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=${CMAKE_SOURCE_DIR}/external/glfw-extract/Debug
+                                    -DCMAKE_BUILD_TYPE=Debug
+                                    ${COMMON_CMAKE_COMMAND_ARGS}
+                                    -DGLFW_BUILD_EXAMPLES=OFF
+                                    -DGLFW_BUILD_TESTS=OFF
+                                    -DGLFW_BUILD_DOCS=OFF
+                                    # -DGLFW_INSTALL=OFF
+            COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/external/glfw"
+                                    -B "${CMAKE_SOURCE_DIR}/external/glfw/build-release"
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=${CMAKE_SOURCE_DIR}/external/glfw-extract/Release
+                                    -DCMAKE_BUILD_TYPE=Release
+                                    ${COMMON_CMAKE_COMMAND_ARGS}
+                                    -DGLFW_BUILD_EXAMPLES=OFF
+                                    -DGLFW_BUILD_TESTS=OFF
+                                    -DGLFW_BUILD_DOCS=OFF
+                                    # -DGLFW_INSTALL=OFF
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glfw"
+        )
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/glfw/build-debug" --parallel
+            COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/glfw/build-release" --parallel
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glfw"
+        )
+        # glm
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/external/glm"
+                                    -B "${CMAKE_SOURCE_DIR}/external/glm/build-debug"
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=${CMAKE_SOURCE_DIR}/external/glm-extract/Debug
+                                    -DCMAKE_BUILD_TYPE=Debug
+                                    ${COMMON_CMAKE_COMMAND_ARGS}
+                                    # -DGLM_BUILD_INSTALL=OFF
+            COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/external/glm"
+                                    -B "${CMAKE_SOURCE_DIR}/external/glm/build-release"
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=${CMAKE_SOURCE_DIR}/external/glm-extract/Release
+                                    -DCMAKE_BUILD_TYPE=Release
+                                    ${COMMON_CMAKE_COMMAND_ARGS}
+                                    # -DGLM_BUILD_INSTALL=OFF
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glm"
+        )
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/glm/build-debug" --parallel
+            COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/glm/build-release" --parallel
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glm"
+        )
+        # spdlog
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/external/spdlog"
+                                    -B "${CMAKE_SOURCE_DIR}/external/spdlog/build-debug"
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=${CMAKE_SOURCE_DIR}/external/spdlog-extract/Debug
+                                    -DCMAKE_BUILD_TYPE=Debug
+                                    ${COMMON_CMAKE_COMMAND_ARGS}
+                                    -DSPDLOG_BUILD_EXAMPLE=OFF
+                                    # -DSPDLOG_INSTALL=OFF
+            COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/external/spdlog"
+                                    -B "${CMAKE_SOURCE_DIR}/external/spdlog/build-release"
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=${CMAKE_SOURCE_DIR}/external/spdlog-extract/Release
+                                    -DCMAKE_BUILD_TYPE=Release
+                                    ${COMMON_CMAKE_COMMAND_ARGS}
+                                    -DSPDLOG_BUILD_EXAMPLE=OFF
+                                    # -DSPDLOG_INSTALL=OFF
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/spdlog"
+        )
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/spdlog/build-debug" --parallel
+            COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/spdlog/build-release" --parallel
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/spdlog"
+        )
+        # shaderc
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/external/shaderc"
+                                    -B "${CMAKE_SOURCE_DIR}/external/shaderc/build-debug"
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=${CMAKE_SOURCE_DIR}/external/shaderc-extract/Debug
+                                    -DCMAKE_BUILD_TYPE=Debug
+                                    ${COMMON_CMAKE_COMMAND_ARGS}
+                                    -DSHADERC_ENABLE_SHARED_CRT=ON # For shared crt build in msvc
+                                    -DSHADERC_ENABLE_WGSL_OUTPUT=OFF # No Web GL
+                                    # -DSHADERC_SKIP_INSTALL=ON # Skips any installs
+                                    -DSHADERC_SKIP_TESTS=ON
+                                    -DSHADERC_SKIP_EXAMPLES=ON
+                                    -DSHADERC_SKIP_EXECUTABLES=ON
+                                    -DSHADERC_SKIP_COPYRIGHT_CHECK=ON
+            COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/external/shaderc"
+                                    -B "${CMAKE_SOURCE_DIR}/external/shaderc/build-release"
+                                    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=${CMAKE_SOURCE_DIR}/external/shaderc-extract/Release
+                                    -DCMAKE_BUILD_TYPE=Release
+                                    ${COMMON_CMAKE_COMMAND_ARGS}
+                                    -DSHADERC_ENABLE_SHARED_CRT=ON # For shared crt build in msvc
+                                    -DSHADERC_ENABLE_WGSL_OUTPUT=OFF # No Web GL
+                                    # -DSHADERC_SKIP_INSTALL=ON # Skips any installs
+                                    -DSHADERC_SKIP_TESTS=ON
+                                    -DSHADERC_SKIP_EXAMPLES=ON
+                                    -DSHADERC_SKIP_EXECUTABLES=ON
+                                    -DSHADERC_SKIP_COPYRIGHT_CHECK=ON
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/shaderc"
+        )
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/shaderc/build-debug" --parallel
+            COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/shaderc/build-release" --parallel
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/shaderc"
+        )
+    endif()
+    if(MSVC)
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/glfw-extract/Debug/glfw3.lib" "${CMAKE_SOURCE_DIR}/external/builds/Debug/glfw3.lib"
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/glfw-extract/Debug/glfw3.pdb" "${CMAKE_SOURCE_DIR}/external/builds/Debug/glfw3.pdb"
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/glfw-extract/Release/glfw3.lib" "${CMAKE_SOURCE_DIR}/external/builds/Release/glfw3.lib"
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glfw"
+        )
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/glm-extract/Debug/glm.lib" "${CMAKE_SOURCE_DIR}/external/builds/Debug/glm.lib"
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/glm-extract/Debug/glm.pdb" "${CMAKE_SOURCE_DIR}/external/builds/Debug/glm.pdb"
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/glm-extract/Release/glm.lib" "${CMAKE_SOURCE_DIR}/external/builds/Release/glm.lib"
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glm"
+        )
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/spdlog-extract/Debug/spdlogd.lib" "${CMAKE_SOURCE_DIR}/external/builds/Debug/spdlogd.lib"
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/spdlog-extract/Debug/spdlogd.pdb" "${CMAKE_SOURCE_DIR}/external/builds/Debug/spdlogd.pdb"
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/spdlog-extract/Release/spdlog.lib" "${CMAKE_SOURCE_DIR}/external/builds/Release/spdlog.lib"
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/spdlog"
+        )
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/shaderc-extract/Debug/shaderc_combined.lib" "${CMAKE_SOURCE_DIR}/external/builds/Debug/shaderc_combined.lib"
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/shaderc-extract/Debug/shaderc.pdb" "${CMAKE_SOURCE_DIR}/external/builds/Debug/shaderc.pdb"
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/shaderc-extract/Release/shaderc_combined.lib" "${CMAKE_SOURCE_DIR}/external/builds/Release/shaderc_combined.lib"
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/shaderc"
+        )
+    else()
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/glfw-extract/Debug/libglfw3.a" "${CMAKE_SOURCE_DIR}/external/builds/Debug/libglfw3.a"
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/glfw-extract/Release/libglfw3.a" "${CMAKE_SOURCE_DIR}/external/builds/Release/libglfw3.a"
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glfw"
+        )
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/glm-extract/Debug/libglm.a" "${CMAKE_SOURCE_DIR}/external/builds/Debug/libglm.a"
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/glm-extract/Release/libglm.a" "${CMAKE_SOURCE_DIR}/external/builds/Release/libglm.a"
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glm"
+        )
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/spdlog-extract/Debug/libspdlogd.a" "${CMAKE_SOURCE_DIR}/external/builds/Debug/libspdlogd.a"
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/spdlog-extract/Release/libspdlog.a" "${CMAKE_SOURCE_DIR}/external/builds/Release/libspdlog.a"
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/spdlog"
+        )
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/shaderc-extract/Debug/libshaderc_combined.a" "${CMAKE_SOURCE_DIR}/external/builds/Debug/libshaderc_combined.a"
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/external/shaderc-extract/Release/libshaderc_combined.a" "${CMAKE_SOURCE_DIR}/external/builds/Release/libshaderc_combined.a"
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/shaderc"
+        )
     endif()
     # cleanup
     execute_process(
