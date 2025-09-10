@@ -149,6 +149,9 @@ if(IS_INITIAL_SETUP)
         )
         execute_process(
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/glfw/build" --parallel --config Debug
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glfw"
+        )
+        execute_process(
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/glfw/build" --parallel --config Release
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glfw"
         )
@@ -164,6 +167,9 @@ if(IS_INITIAL_SETUP)
         )
         execute_process(
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/glm/build" --parallel --config Debug
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glm"
+        )
+        execute_process(
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/glm/build" --parallel --config Release
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glm"
         )
@@ -180,6 +186,9 @@ if(IS_INITIAL_SETUP)
         )
         execute_process(
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/spdlog/build" --parallel --config Debug
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/spdlog"
+        )
+        execute_process(
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/spdlog/build" --parallel --config Release
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/spdlog"
         )
@@ -201,6 +210,9 @@ if(IS_INITIAL_SETUP)
         )
         execute_process(
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/shaderc/build" --parallel --config Debug
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/shaderc"
+        )
+        execute_process(
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/shaderc/build" --parallel --config Release
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/shaderc"
         )
@@ -229,6 +241,9 @@ if(IS_INITIAL_SETUP)
         )
         execute_process(
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/glfw/build-debug" --parallel
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glfw"
+        )
+        execute_process(
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/glfw/build-release" --parallel
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glfw"
         )
@@ -250,6 +265,9 @@ if(IS_INITIAL_SETUP)
         )
         execute_process(
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/glm/build-debug" --parallel
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glm"
+        )
+        execute_process(
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/glm/build-release" --parallel
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/glm"
         )
@@ -273,6 +291,9 @@ if(IS_INITIAL_SETUP)
         )
         execute_process(
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/spdlog/build-debug" --parallel
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/spdlog"
+        )
+        execute_process(
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/spdlog/build-release" --parallel
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/spdlog"
         )
@@ -283,7 +304,7 @@ if(IS_INITIAL_SETUP)
                                     -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=${CMAKE_SOURCE_DIR}/external/shaderc-extract/Debug
                                     -DCMAKE_BUILD_TYPE=Debug
                                     ${COMMON_CMAKE_COMMAND_ARGS}
-                                    -DSHADERC_ENABLE_SHARED_CRT=ON # For shared crt build in msvc
+                                    # -DSHADERC_ENABLE_SHARED_CRT=ON # For shared crt build in msvc
                                     -DSHADERC_ENABLE_WGSL_OUTPUT=OFF # No Web GL
                                     # -DSHADERC_SKIP_INSTALL=ON # Skips any installs
                                     -DSHADERC_SKIP_TESTS=ON
@@ -306,6 +327,9 @@ if(IS_INITIAL_SETUP)
         )
         execute_process(
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/shaderc/build-debug" --parallel
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/shaderc"
+        )
+        execute_process(
             COMMAND ${CMAKE_COMMAND} --build "${CMAKE_SOURCE_DIR}/external/shaderc/build-release" --parallel
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external/shaderc"
         )
